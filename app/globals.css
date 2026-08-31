@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light; }
+html { overflow-x: hidden; scroll-behavior: smooth; }
+body { margin: 0; overflow-x: hidden; background: #f4f8f8; color: #26383a; }
+button, input, textarea { font: inherit; }
+::selection { background: #cfe2e3; }
