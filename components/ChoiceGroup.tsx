@@ -35,7 +35,7 @@ export function ChoiceGroup({ name, label, options, value, onChange, hasError }:
             <span className={`mr-3 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${selected ? 'border-primary' : 'border-slate-300'}`}>
               {selected && <span className="h-2.5 w-2.5 rounded-full bg-primary" />}
             </span>
-            {option}
+            <span className="jp-copy min-w-0">{option}</span>
           </label>
         );
       })}

@@ -38,9 +38,9 @@ export function ScoreSelector({ name, label, value, onChange, hasError }: ScoreS
         <span className="h-px flex-1 bg-gradient-to-r from-slate-200 to-primary/60" />
         <span className="text-xs text-primary">→</span>
       </div>
-      <div className="mt-1.5 flex justify-between text-xs font-medium text-slate-600">
-        <span>非常に不満</span>
-        <span>非常に満足</span>
+      <div className="jp-copy mt-1.5 flex justify-between gap-3 text-xs font-medium text-slate-600">
+        <span className="whitespace-nowrap">非常に不満</span>
+        <span className="whitespace-nowrap">非常に満足</span>
       </div>
     </div>
   );
