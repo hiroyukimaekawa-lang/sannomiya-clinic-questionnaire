@@ -65,22 +65,22 @@ export default function SurveyPage() {
         <header className="flex items-center justify-center gap-3 py-5">
           <ClinicMark className="h-10 w-10" />
           <div className="text-center">
-            <p className="text-lg font-bold tracking-[0.08em] text-primary-dark">三宮胃腸内科</p>
-            <p className="text-xs tracking-[0.12em] text-slate-500">内科・消化器内科</p>
+            <p className="clinic-name jp-heading text-lg font-bold tracking-[0.08em] text-primary-dark">三宮胃腸内科</p>
+            <p className="jp-copy text-xs tracking-[0.12em] text-slate-500">内科・消化器内科</p>
           </div>
         </header>
 
         <section className="mb-5 overflow-hidden rounded-[1.75rem] bg-primary px-6 py-9 text-center text-white shadow-card">
           <p className="mb-2 text-xs font-bold tracking-[0.24em] text-white/80">PATIENT QUESTIONNAIRE</p>
-          <h1 className="text-2xl font-bold tracking-[0.08em]">患者様アンケート</h1>
+          <h1 className="jp-heading text-2xl font-bold tracking-[0.08em]">患者様アンケート</h1>
           <div className="mx-auto my-5 h-px w-12 bg-white/55" />
-          <p className="intro-copy text-sm leading-7 text-white/95">
+          <p className="intro-copy jp-copy text-sm leading-7 text-white/95">
             <span className="intro-line">本日は三宮胃腸内科へご来院いただきありがとうございます。</span>
             <span className="intro-line">今後の診療・サービス改善のため、アンケートへのご協力をお願いいたします。</span>
           </p>
         </section>
 
-        <aside className="mb-6 rounded-2xl border border-primary/15 bg-white/85 px-5 py-4 text-sm leading-6 text-slate-600">
+        <aside className="jp-copy mb-6 rounded-2xl border border-primary/15 bg-white/85 px-5 py-4 text-sm leading-6 text-slate-600">
           <p className="font-bold text-primary-dark">匿名でご回答いただけます</p>
           <p>いただいた内容は、診療・サービス改善のために活用いたします。</p>
         </aside>
@@ -104,12 +104,12 @@ export default function SurveyPage() {
             );
           })}
 
-          {submitError && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-bold text-error">{submitError}</p>}
+          {submitError && <p role="alert" className="jp-copy rounded-xl bg-red-50 px-4 py-3 text-sm font-bold text-error">{submitError}</p>}
 
-          <button type="submit" disabled={submitting} className="min-h-14 w-full rounded-full bg-primary px-6 py-4 text-base font-bold text-white shadow-lg shadow-primary/20 transition hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60">
+          <button type="submit" disabled={submitting} className="jp-ui-label min-h-14 w-full rounded-full bg-primary px-6 py-4 text-base font-bold text-white shadow-lg shadow-primary/20 transition hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60">
             {submitting ? '送信しています…' : 'アンケートを送信する'}
           </button>
-          <p className="text-center text-xs leading-5 text-slate-500">回答の送信により個人を特定する情報は収集しません。</p>
+          <p className="jp-copy text-center text-xs leading-5 text-slate-500">回答の送信により個人を特定する情報は収集しません。</p>
         </form>
       </div>
     </main>
