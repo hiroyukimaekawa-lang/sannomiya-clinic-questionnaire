@@ -7,5 +7,69 @@ html { overflow-x: hidden; scroll-behavior: smooth; }
 body { margin: 0; overflow-x: hidden; background: #f4f8f8; color: #26383a; }
 button, input, textarea { font: inherit; }
 ::selection { background: #cfe2e3; }
+
+.jp-copy,
+.jp-heading,
+.jp-ui-label,
+.intro-line {
+  line-break: strict;
+  word-break: normal;
+}
+
+.jp-copy,
+.intro-line {
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
+.jp-heading,
+.jp-ui-label {
+  overflow-wrap: normal;
+  text-wrap: balance;
+}
+
+.keep-phrase {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+@supports (word-break: auto-phrase) {
+  .jp-copy,
+  .jp-heading,
+  .jp-ui-label,
+  .intro-line {
+    word-break: auto-phrase;
+  }
+}
+
+.clinic-name { white-space: nowrap; }
 .intro-copy { max-width: 350px; margin-right: auto; margin-left: auto; line-break: strict; word-break: normal; overflow-wrap: normal; }
-.intro-line { display: block; text-wrap: balance; }
+.intro-line { display: block; }
+
+.thanks-title {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  font-size: clamp(20px, 6vw, 24px);
+  line-height: 1.55;
+  letter-spacing: .01em;
+}
+
+.thanks-title-phrase {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.thanks-lead,
+.review-copy {
+  max-width: 350px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+@media (max-width: 374px) {
+  .thanks-title { font-size: 19px; }
+  .thanks-lead,
+  .review-copy { max-width: 285px; }
+}
