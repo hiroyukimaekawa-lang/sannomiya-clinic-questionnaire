@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { DEFAULT_GOOGLE_REVIEW_URL, resolveGoogleReviewUrl } from '../data/config';
 import { initialFormState, surveyQuestions, type SurveyFormState } from '../data/questions';
-import { calculateScores, createSurveyPayload, hasValidationErrors, shouldShowReviewCta, validateSurvey } from '../lib/survey';
+import { calculateScores, createSurveyPayload, hasValidationErrors, isGoogleReviewEligible, shouldShowReviewCta, validateSurvey } from '../lib/survey';
 
 const completeForm: SurveyFormState = {
   visitPurpose: '検査のみ',
-  medicalCareScore: '8',
+  waitingTimeScore: '8',
   staffResponseScore: '9',
   reason: 'ホームページ',
   comments: '丁寧にご対応いただきました。',
@@ -20,7 +21,7 @@ test('質問文、回答形式、選択肢が仕様どおり', () => {
 
 test('Q1〜Q4が未回答なら必須エラーになる', () => {
   const errors = validateSurvey(initialFormState);
-  assert.deepEqual(Object.keys(errors), ['visitPurpose', 'medicalCareScore', 'staffResponseScore', 'reason']);
+  assert.deepEqual(Object.keys(errors), ['visitPurpose', 'waitingTimeScore', 'staffResponseScore', 'reason']);
   assert.equal(errors.comments, undefined);
   assert.equal(hasValidationErrors(errors), true);
 });
@@ -37,11 +38,34 @@ test('Q2とQ3から合計と平均を計算する', () => {
 
 test('GAS payloadに回答日時、回答、合計、平均を含む', () => {
   const payload = createSurveyPayload(completeForm, '2026-08-31T00:00:00.000Z');
-  assert.deepEqual(payload, { ...completeForm, totalScore: 17, averageScore: 8.5, submittedAt: '2026-08-31T00:00:00.000Z' });
+  assert.deepEqual(payload, {
+    ...completeForm,
+    medicalCareScore: completeForm.waitingTimeScore,
+    totalScore: 17,
+    averageScore: 8.5,
+    submittedAt: '2026-08-31T00:00:00.000Z',
+  });
 });
 
-test('Google口コミCTAはURL未設定時だけ非表示になる', () => {
-  assert.equal(shouldShowReviewCta(''), false);
-  assert.equal(shouldShowReviewCta('   '), false);
-  assert.equal(shouldShowReviewCta('x'), true);
+test('Google口コミ対象は待ち時間とスタッフ対応がともに9点以上', () => {
+  for (const [waiting, staff] of [[9, 9], [9, 10], [10, 9], [10, 10]]) {
+    assert.equal(isGoogleReviewEligible(waiting, staff), true, `${waiting}, ${staff}`);
+  }
+  for (const [waiting, staff] of [[8, 9], [9, 8], [8, 10], [10, 8], [1, 10]]) {
+    assert.equal(isGoogleReviewEligible(waiting, staff), false, `${waiting}, ${staff}`);
+  }
+});
+
+test('Google口コミCTAはURLがあり対象の場合だけ表示する', () => {
+  assert.equal(shouldShowReviewCta('', true), false);
+  assert.equal(shouldShowReviewCta('   ', true), false);
+  assert.equal(shouldShowReviewCta('x', false), false);
+  assert.equal(shouldShowReviewCta('x', true), true);
+});
+
+test('Google口コミURLは環境変数を優先し、空なら三宮胃腸内科の指定URLを使う', () => {
+  assert.equal(resolveGoogleReviewUrl(' https://example.com/review '), 'https://example.com/review');
+  assert.equal(resolveGoogleReviewUrl(''), DEFAULT_GOOGLE_REVIEW_URL);
+  assert.equal(resolveGoogleReviewUrl('   '), DEFAULT_GOOGLE_REVIEW_URL);
+  assert.equal(resolveGoogleReviewUrl(undefined), DEFAULT_GOOGLE_REVIEW_URL);
 });

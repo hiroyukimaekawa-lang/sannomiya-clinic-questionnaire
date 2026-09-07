@@ -7,9 +7,9 @@ import { ClinicMark } from '@/components/ClinicMark';
 import { QuestionCard } from '@/components/QuestionCard';
 import { ScoreSelector } from '@/components/ScoreSelector';
 import { TextAreaField } from '@/components/TextAreaField';
-import { clinicConfig } from '@/data/config';
+import { clinicConfig, STORAGE_KEYS } from '@/data/config';
 import { initialFormState, surveyQuestions, type SurveyFormErrors, type SurveyFormState } from '@/data/questions';
-import { createSurveyPayload, hasValidationErrors, validateSurvey } from '@/lib/survey';
+import { createSurveyPayload, hasValidationErrors, isGoogleReviewEligible, validateSurvey } from '@/lib/survey';
 
 export default function SurveyPage() {
   const router = useRouter();
@@ -48,6 +48,10 @@ export default function SurveyPage() {
         });
       }
 
+      sessionStorage.setItem(
+        STORAGE_KEYS.showReview,
+        isGoogleReviewEligible(Number(form.waitingTimeScore), Number(form.staffResponseScore)) ? '1' : '0',
+      );
       router.push('/thanks');
     } catch {
       setSubmitError('送信に失敗しました。通信環境をご確認のうえ、もう一度お試しください。');
@@ -60,7 +64,7 @@ export default function SurveyPage() {
       <div className="mx-auto w-full max-w-[430px]">
         <header className="flex items-center justify-center gap-3 py-5">
           <ClinicMark className="h-10 w-10" />
-          <div>
+          <div className="text-center">
             <p className="text-lg font-bold tracking-[0.08em] text-primary-dark">三宮胃腸内科</p>
             <p className="text-xs tracking-[0.12em] text-slate-500">内科・消化器内科</p>
           </div>
@@ -70,9 +74,9 @@ export default function SurveyPage() {
           <p className="mb-2 text-xs font-bold tracking-[0.24em] text-white/80">PATIENT QUESTIONNAIRE</p>
           <h1 className="text-2xl font-bold tracking-[0.08em]">患者様アンケート</h1>
           <div className="mx-auto my-5 h-px w-12 bg-white/55" />
-          <p className="text-sm leading-7 text-white/95">
-            本日は三宮胃腸内科へご来院いただきありがとうございます。<br />
-            今後の診療・サービス改善のため、アンケートへのご協力をお願いいたします。
+          <p className="intro-copy text-sm leading-7 text-white/95">
+            <span className="intro-line">本日は三宮胃腸内科へご来院いただきありがとうございます。</span>
+            <span className="intro-line">今後の診療・サービス改善のため、アンケートへのご協力をお願いいたします。</span>
           </p>
         </section>
 

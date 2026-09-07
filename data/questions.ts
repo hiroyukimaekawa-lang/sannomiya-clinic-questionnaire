@@ -11,7 +11,7 @@ export interface Question {
 
 export interface SurveyFormState {
   visitPurpose: string;
-  medicalCareScore: string;
+  waitingTimeScore: string;
   staffResponseScore: string;
   reason: string;
   comments: string;
@@ -19,7 +19,7 @@ export interface SurveyFormState {
 
 export const initialFormState: SurveyFormState = {
   visitPurpose: '',
-  medicalCareScore: '',
+  waitingTimeScore: '',
   staffResponseScore: '',
   reason: '',
   comments: '',
@@ -36,15 +36,15 @@ export const surveyQuestions: readonly Question[] = [
     required: true,
   },
   {
-    id: 'medicalCareScore',
+    id: 'waitingTimeScore',
     type: 'score-10',
-    title: '②診療内容は満足できましたか',
+    title: '②待ち時間には満足いただけましたか？',
     required: true,
   },
   {
     id: 'staffResponseScore',
     type: 'score-10',
-    title: '③スタッフの対応は満足できましたか',
+    title: '③スタッフの対応には満足いただけましたか？',
     required: true,
   },
   {

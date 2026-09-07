@@ -5,12 +5,12 @@
 ## 質問内容
 
 1. 本日のご来院目的（単一選択・必須）
-2. 診療内容の満足度（1〜10・必須）
+2. 待ち時間の満足度（1〜10・必須）
 3. スタッフ対応の満足度（1〜10・必須）
 4. 当院を選んだ理由（単一選択・必須）
 5. ご意見・ご要望（自由記述・任意・最大1000文字）
 
-Q2とQ3から合計スコアと平均スコアを内部計算し、GAS送信payloadに含めます。氏名、電話番号、メールアドレス、住所は取得しません。
+Q2とQ3から合計スコアと平均スコアを内部計算し、GAS送信payloadに含めます。Google口コミ案内は待ち時間とスタッフ対応の両方が9点以上の場合だけ表示します。氏名、電話番号、メールアドレス、住所は取得しません。
 
 ## ローカル起動
 
@@ -32,7 +32,7 @@ NEXT_PUBLIC_GOOGLE_REVIEW_URL=
 ```
 
 - `NEXT_PUBLIC_GAS_URL`: Apps Scriptをウェブアプリとしてデプロイした際のURL。
-- `NEXT_PUBLIC_GOOGLE_REVIEW_URL`: Google Business Profileの口コミ投稿URL。設定時だけサンクス画面にCTAを表示します。点数による表示選別はありません。
+- `NEXT_PUBLIC_GOOGLE_REVIEW_URL`: Google Business Profileの口コミ投稿URL。設定値を優先し、空の場合はコードに定義した三宮胃腸内科のURLを使用します。
 - `.env.local` はGit管理対象外です。秘密情報をコミットしないでください。
 
 ## Google Sheets / GAS設定
@@ -48,11 +48,11 @@ NEXT_PUBLIC_GOOGLE_REVIEW_URL=
 
 `回答日時 / 本日の来院目的 / 診療内容満足度 / スタッフ対応満足度 / 合計スコア / 平均スコア / 当院を選んだ理由 / 自由記述`
 
-既存1行目がこの並びと異なる場合は誤った列への保存を防ぐためエラーにします。Apps Scriptはスプレッドシートに紐づけて使うため、Spreadsheet IDのハードコードはありません。
+既存1行目がこの並びと異なる場合は誤った列への保存を防ぐためエラーにします。フロントは待ち時間を `waitingTimeScore` として扱いつつ、現在稼働中のGASとの互換性のため同じ値を `medicalCareScore` にも入れて送信します。Apps Scriptはスプレッドシートに紐づけて使うため、Spreadsheet IDのハードコードはありません。
 
 ## Google口コミURL設定
 
-Google Business Profileから取得した正規の口コミ投稿URLを `NEXT_PUBLIC_GOOGLE_REVIEW_URL` に設定し、アプリを再起動または再デプロイします。未設定時はエラーを出さずCTAを表示しません。架空URLは使用していません。
+環境ごとに別の口コミ先を使う場合は `NEXT_PUBLIC_GOOGLE_REVIEW_URL` に設定し、アプリを再起動または再デプロイします。未設定時は、三宮胃腸内科の指定Google口コミURLを使用します。
 
 ## 品質確認
 
@@ -72,8 +72,6 @@ git diff --check
 3. Project SettingsのEnvironment Variablesへ、確定済みのGAS URLとGoogle口コミURLを登録します。
 4. Productionへデプロイし、回答送信とGoogle Sheetsの追記を実データで確認します。
 
-今回はVercel公開およびGitHub pushを実施していません。
-
 ## 質問・デザインの変更
 
 - 質問文、形式、選択肢: `data/questions.ts`
@@ -84,10 +82,4 @@ git diff --check
 
 質問の追加・削除時はフォーム型、validation、payload、GASヘッダー・保存列、Unit testも同期してください。
 
-## 現在の未設定項目
-
-- Google口コミ投稿URL
-- Googleスプレッドシート
-- Google Apps ScriptウェブアプリURL
-
-これらはすべて運用先確定後に設定できます。現在は架空値を含みません。
+GoogleスプレッドシートとGoogle Apps ScriptウェブアプリURLは、運用環境で設定してください。

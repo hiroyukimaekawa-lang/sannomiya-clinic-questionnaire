@@ -1,11 +1,21 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { ClinicMark } from '@/components/ClinicMark';
-import { clinicConfig } from '@/data/config';
+import { clinicConfig, STORAGE_KEYS } from '@/data/config';
 import { shouldShowReviewCta } from '@/lib/survey';
 
 export default function ThanksPage() {
+  const [isEligible, setIsEligible] = useState(false);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      setIsEligible(sessionStorage.getItem(STORAGE_KEYS.showReview) === '1');
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,#e6f1f1_0,#f4f8f8_34rem)] px-4 py-12">
       <section className="w-full max-w-[430px] rounded-[1.75rem] border border-primary/15 bg-white p-7 text-center shadow-card sm:p-9">
@@ -16,7 +26,7 @@ export default function ThanksPage() {
           いただいたご意見は、<br />今後より良い診療環境づくりのために<br />活用させていただきます。
         </p>
 
-        {shouldShowReviewCta(clinicConfig.googleReviewUrl) && (
+        {shouldShowReviewCta(clinicConfig.googleReviewUrl, isEligible) && (
           <div className="mt-7 border-t border-slate-100 pt-7">
             <p className="mb-4 text-sm leading-6 text-slate-600">よろしければ、<br />Googleでもご感想をお聞かせください。</p>
             <a href={clinicConfig.googleReviewUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-primary px-5 py-3 font-bold text-white transition hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
