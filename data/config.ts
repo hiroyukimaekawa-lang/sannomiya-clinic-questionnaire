@@ -14,5 +14,6 @@ export const clinicConfig = {
 } as const;
 
 export const STORAGE_KEYS = {
+  reviewText: 'sannomiya-clinic-review-text',
   showReview: 'sannomiya-clinic-show-review',
 } as const;

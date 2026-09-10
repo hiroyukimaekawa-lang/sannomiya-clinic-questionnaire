@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChoiceGroup } from '@/components/ChoiceGroup';
-import { ClinicMark } from '@/components/ClinicMark';
 import { QuestionCard } from '@/components/QuestionCard';
 import { ScoreSelector } from '@/components/ScoreSelector';
 import { TextAreaField } from '@/components/TextAreaField';
@@ -48,6 +47,7 @@ export default function SurveyPage() {
         });
       }
 
+      sessionStorage.setItem(STORAGE_KEYS.reviewText, form.comments);
       sessionStorage.setItem(
         STORAGE_KEYS.showReview,
         isGoogleReviewEligible(Number(form.waitingTimeScore), Number(form.staffResponseScore)) ? '1' : '0',
@@ -62,8 +62,7 @@ export default function SurveyPage() {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,#e6f1f1_0,#f4f8f8_34rem)] px-4 pb-16">
       <div className="mx-auto w-full max-w-[430px]">
-        <header className="flex items-center justify-center gap-3 py-5">
-          <ClinicMark className="h-10 w-10" />
+        <header className="flex items-center justify-center py-5">
           <div className="text-center">
             <p className="clinic-name jp-heading text-lg font-bold tracking-[0.08em] text-primary-dark">三宮胃腸内科</p>
             <p className="jp-copy text-xs tracking-[0.12em] text-slate-500">内科・消化器内科</p>
