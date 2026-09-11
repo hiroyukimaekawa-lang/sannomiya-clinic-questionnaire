@@ -36,9 +36,10 @@ test('Q2とQ3から合計と平均を計算する', () => {
   assert.deepEqual(calculateScores(completeForm), { totalScore: 17, averageScore: 8.5 });
 });
 
-test('GAS payloadに回答日時、回答、合計、平均を含む', () => {
+test('GAS payloadに医院キー、回答日時、回答、合計、平均を含む', () => {
   const payload = createSurveyPayload(completeForm, '2026-08-31T00:00:00.000Z');
   assert.deepEqual(payload, {
+    clinicKey: 'sannomiya',
     ...completeForm,
     medicalCareScore: completeForm.waitingTimeScore,
     totalScore: 17,
