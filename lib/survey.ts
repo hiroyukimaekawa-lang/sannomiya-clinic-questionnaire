@@ -1,6 +1,7 @@
 import { surveyQuestions, type SurveyFormErrors, type SurveyFormState } from '@/data/questions';
 
 export interface SurveyPayload extends SurveyFormState {
+  clinicKey: 'sannomiya';
   submittedAt: string;
   /** Kept for compatibility with the currently deployed GAS. */
   medicalCareScore: string;
@@ -34,6 +35,7 @@ export function calculateScores(form: Pick<SurveyFormState, 'waitingTimeScore' |
 
 export function createSurveyPayload(form: SurveyFormState, submittedAt = new Date().toISOString()): SurveyPayload {
   return {
+    clinicKey: 'sannomiya',
     ...form,
     medicalCareScore: form.waitingTimeScore,
     ...calculateScores(form),
