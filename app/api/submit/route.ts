@@ -1,5 +1,5 @@
 const GAS_URL =
-  'https://script.google.com/macros/s/AKfycbyiQByilfcF3QDIuYtDkNVV_GY-skTCZbP_9KwVlD-BxX1ysOvV6s9sd0gxdkiC7XSb/exec';
+  'https://script.google.com/macros/s/AKfycbzyRzONRunYASF_5DHj5_JwM6kICsVbUR_L-XvrvUZWZq5aw1vpC1jNc7sL0Cz8vD4g/exec';
 
 const EXPECTED_GAS_VERSION = '2026-09-14-separated-sheets-v1';
 
