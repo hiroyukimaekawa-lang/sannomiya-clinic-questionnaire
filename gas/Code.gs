@@ -1,16 +1,21 @@
 /**
- * クリニックアンケート共通回答保存用 Google Apps Script
+ * クリニックアンケート共通受信GAS
  *
- * 保存先:
- * https://docs.google.com/spreadsheets/d/14y5eVdeMwXSABHr4GBvZDzz38RdqXovvzHQmWuEkddQ/edit
+ * 1つのWebアプリURLで受信し、clinicKeyごとに
+ * 別々のGoogleスプレッドシートへ保存します。
  *
- * 1つのWebアプリURLを三宮胃腸内科・水谷眼科診療所の両方で使用できます。
+ * 三宮胃腸内科:
+ * https://docs.google.com/spreadsheets/d/1fh82z4kOH10yH_dmuI8C9IzgTmEhnb-Li7HEWL5r9Uc/edit
+ *
+ * 水谷眼科診療所:
+ * https://docs.google.com/spreadsheets/d/1Cf3UFjX5CNqQM-CCC-yWqJdptS7nz39qzxLh5-yZWDo/edit
  */
-var SPREADSHEET_ID = '14y5eVdeMwXSABHr4GBvZDzz38RdqXovvzHQmWuEkddQ';
+var VERSION = '2026-09-14-separated-sheets-v1';
 
 var CLINICS = {
   sannomiya: {
-    sheetName: '三宮胃腸内科',
+    spreadsheetId: '1fh82z4kOH10yH_dmuI8C9IzgTmEhnb-Li7HEWL5r9Uc',
+    sheetName: '回答一覧',
     headers: [
       '回答日時',
       '本日の来院目的',
@@ -23,7 +28,8 @@ var CLINICS = {
     ]
   },
   mizutani: {
-    sheetName: '水谷眼科診療所',
+    spreadsheetId: '1Cf3UFjX5CNqQM-CCC-yWqJdptS7nz39qzxLh5-yZWDo',
+    sheetName: '回答一覧',
     headers: [
       '回答日時',
       '性別',
@@ -39,21 +45,35 @@ var CLINICS = {
   }
 };
 
+function doGet() {
+  return jsonResponse_({
+    status: 'ok',
+    version: VERSION,
+    message: 'クリニックアンケート共通受信エンドポイント（医院別スプレッドシート）'
+  });
+}
+
 function doPost(e) {
+  var lock = LockService.getScriptLock();
+
   try {
     if (!e || !e.postData || !e.postData.contents) {
       throw new Error('送信データがありません。');
     }
 
     var data = JSON.parse(e.postData.contents);
-    var clinicKey = String(data.clinicKey || inferClinicKey_(data));
+    var clinicKey = String(data.clinicKey || '');
     var config = CLINICS[clinicKey];
+
     if (!config) {
-      throw new Error('保存先の医院を判定できません。');
+      throw new Error('clinicKeyが不正です: ' + clinicKey);
     }
 
-    var spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    lock.waitLock(10000);
+
+    var spreadsheet = SpreadsheetApp.openById(config.spreadsheetId);
     var sheet = spreadsheet.getSheetByName(config.sheetName);
+
     if (!sheet) {
       throw new Error('保存先タブが見つかりません: ' + config.sheetName);
     }
@@ -66,74 +86,97 @@ function doPost(e) {
       appendMizutani_(sheet, data);
     }
 
-    return jsonResponse_({ result: 'success', clinic: clinicKey });
+    SpreadsheetApp.flush();
+
+    return jsonResponse_({
+      result: 'success',
+      clinic: clinicKey,
+      version: VERSION
+    });
   } catch (error) {
-    return jsonResponse_({ result: 'error', message: String(error) });
+    return jsonResponse_({
+      result: 'error',
+      version: VERSION,
+      message: error && error.message ? error.message : String(error)
+    });
+  } finally {
+    try {
+      if (lock.hasLock()) lock.releaseLock();
+    } catch (ignore) {}
   }
 }
 
-function doGet() {
-  return jsonResponse_({
-    status: 'ok',
-    message: 'クリニックアンケート共通受信エンドポイント'
-  });
-}
-
-function inferClinicKey_(data) {
-  if (Object.prototype.hasOwnProperty.call(data, 'visitPurpose')) return 'sannomiya';
-  if (Object.prototype.hasOwnProperty.call(data, 'waitingTimeRating')) return 'mizutani';
-  return '';
-}
-
 function appendSannomiya_(sheet, data) {
-  var waiting = Number(data.waitingTimeScore != null ? data.waitingTimeScore : data.medicalCareScore);
-  var staff = Number(data.staffResponseScore);
-  validateScore_(waiting, '待ち時間満足度');
-  validateScore_(staff, 'スタッフ対応満足度');
+  var waiting = toScore_(data.waitingTimeScore != null ? data.waitingTimeScore : data.medicalCareScore, '待ち時間満足度');
+  var staff = toScore_(data.staffResponseScore, 'スタッフ対応満足度');
+  var total = toFiniteNumberOr_(data.totalScore, waiting + staff);
+  var average = toFiniteNumberOr_(data.averageScore, (waiting + staff) / 2);
 
   sheet.appendRow([
-    data.submittedAt ? new Date(data.submittedAt) : new Date(),
+    parseDateOrNow_(data.submittedAt),
     String(data.visitPurpose || ''),
     waiting,
     staff,
-    Number.isFinite(Number(data.totalScore)) ? Number(data.totalScore) : waiting + staff,
-    Number.isFinite(Number(data.averageScore)) ? Number(data.averageScore) : (waiting + staff) / 2,
+    total,
+    average,
     String(data.reason || ''),
     String(data.comments || '').slice(0, 1000)
   ]);
 }
 
 function appendMizutani_(sheet, data) {
-  var waiting = Number(data.waitingTimeRating != null ? data.waitingTimeRating : data.medicalCareRating);
-  var staff = Number(data.staffRating);
-  validateScore_(waiting, '待ち時間満足度');
-  validateScore_(staff, 'スタッフ対応満足度');
-
-  var reasons = Array.isArray(data.reasons) ? data.reasons.join('、') : String(data.reasons || '');
+  var waiting = toScore_(data.waitingTimeRating != null ? data.waitingTimeRating : data.medicalCareRating, '待ち時間満足度');
+  var staff = toScore_(data.staffRating, 'スタッフ対応満足度');
+  var total = toFiniteNumberOr_(data.totalScore, waiting + staff);
+  var average = toFiniteNumberOr_(data.averageScore, Math.round(((waiting + staff) / 2) * 100) / 100);
+  var reasons = Object.prototype.toString.call(data.reasons) === '[object Array]'
+    ? data.reasons.join('、')
+    : String(data.reasons || '');
 
   sheet.appendRow([
-    data.submittedAt ? new Date(data.submittedAt) : new Date(),
+    parseDateOrNow_(data.submittedAt),
     String(data.gender || ''),
     String(data.ageGroup || ''),
     waiting,
     staff,
-    Number.isFinite(Number(data.totalScore)) ? Number(data.totalScore) : waiting + staff,
-    Number.isFinite(Number(data.averageScore)) ? Number(data.averageScore) : Number(((waiting + staff) / 2).toFixed(2)),
+    total,
+    average,
     reasons,
     String(data.otherReason || ''),
     String(data.comments || '').slice(0, 1000)
   ]);
 }
 
-function validateScore_(score, label) {
-  if (!Number.isFinite(score) || score < 1 || score > 10) {
-    throw new Error(label + 'が不正です。');
+function toScore_(value, label) {
+  var score = Number(value);
+  if (!isFinite(score) || score < 1 || score > 10) {
+    throw new Error(label + 'が不正です。受信値: ' + String(value));
   }
+  return score;
+}
+
+function toFiniteNumberOr_(value, fallback) {
+  var number = Number(value);
+  return isFinite(number) ? number : fallback;
+}
+
+function parseDateOrNow_(value) {
+  if (!value) return new Date();
+  var date = new Date(value);
+  return isNaN(date.getTime()) ? new Date() : date;
 }
 
 function ensureHeaders_(sheet, headers) {
-  var current = sheet.getRange(1, 1, 1, headers.length).getValues()[0];
-  var isEmpty = current.every(function(value) { return value === ''; });
+  var current = sheet.getRange(1, 1, 1, headers.length).getDisplayValues()[0];
+  var isEmpty = true;
+  var i;
+
+  for (i = 0; i < current.length; i++) {
+    if (current[i] !== '') {
+      isEmpty = false;
+      break;
+    }
+  }
 
   if (isEmpty) {
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
@@ -143,7 +186,7 @@ function ensureHeaders_(sheet, headers) {
   }
 
   if (current.join('\t') !== headers.join('\t')) {
-    throw new Error('スプレッドシートのヘッダーが想定と一致しません: ' + sheet.getName());
+    throw new Error('保存先ヘッダーが想定と一致しません: ' + sheet.getName());
   }
 }
 
