@@ -1,7 +1,7 @@
 const GAS_URL =
   'https://script.google.com/macros/s/AKfycbzyRzONRunYASF_5DHj5_JwM6kICsVbUR_L-XvrvUZWZq5aw1vpC1jNc7sL0Cz8vD4g/exec';
 
-const EXPECTED_GAS_VERSION = '2026-09-14-separated-sheets-v1';
+const EXPECTED_GAS_VERSION = '2026-09-14-separated-sheets-v2';
 
 type GasResponse = {
   result?: string;
