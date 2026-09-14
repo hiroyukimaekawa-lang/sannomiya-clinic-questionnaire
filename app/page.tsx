@@ -6,7 +6,7 @@ import { ChoiceGroup } from '@/components/ChoiceGroup';
 import { QuestionCard } from '@/components/QuestionCard';
 import { ScoreSelector } from '@/components/ScoreSelector';
 import { TextAreaField } from '@/components/TextAreaField';
-import { clinicConfig, STORAGE_KEYS } from '@/data/config';
+import { STORAGE_KEYS } from '@/data/config';
 import { initialFormState, surveyQuestions, type SurveyFormErrors, type SurveyFormState } from '@/data/questions';
 import { createSurveyPayload, hasValidationErrors, isGoogleReviewEligible, validateSurvey } from '@/lib/survey';
 
@@ -38,13 +38,15 @@ export default function SurveyPage() {
     const payload = createSurveyPayload(form);
 
     try {
-      if (clinicConfig.gasUrl) {
-        await fetch(clinicConfig.gasUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload),
-          mode: 'no-cors',
-        });
+      const response = await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const result = await response.json().catch(() => null) as { error?: string } | null;
+        throw new Error(result?.error || '回答の保存に失敗しました。');
       }
 
       sessionStorage.setItem(STORAGE_KEYS.reviewText, form.comments);
@@ -53,8 +55,8 @@ export default function SurveyPage() {
         isGoogleReviewEligible(Number(form.waitingTimeScore), Number(form.staffResponseScore)) ? '1' : '0',
       );
       router.push('/thanks');
-    } catch {
-      setSubmitError('送信に失敗しました。通信環境をご確認のうえ、もう一度お試しください。');
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : '送信に失敗しました。通信環境をご確認のうえ、もう一度お試しください。');
       setSubmitting(false);
     }
   }
